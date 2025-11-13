@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Emergency Form QR Code</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+</head>
+<body>
+<h1>Scan to Report Emergency</h1>
+<div id="qrcode"></div>
+<script>
+  const formURL = "https://yourdomain.com/emergency.html"; // <-- change to your hosted URL
+  QRCode.toCanvas(document.getElementById('qrcode'), formURL, {width:250}, function (error) {
+    if (error) console.error(error);
+    console.log('QR code generated!');
+  });
+</script>
+</body>
+</html>
