@@ -3,138 +3,133 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Emergency Report</title>
+<title>Safety Near Miss Report</title>
 <style>
-  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;background:#f5f7fb;color:#111;padding:20px;}
-  .wrap{max-width:700px;margin:28px auto;padding:20px;background:#fff;border-radius:10px;box-shadow:0 6px 20px rgba(12,20,40,0.06);}
-  h1{font-size:20px;margin:0 0 8px;}
-  p.lead{margin:0 0 16px;color:#555;}
-  label{display:block;margin-top:12px;font-weight:600;font-size:13px;}
-  input[type=text], textarea, select {width:100%;padding:10px;border:1px solid #dfe6ef;border-radius:8px;margin-top:6px;font-size:14px;}
-  textarea{min-height:120px;resize:vertical;}
-  .actions{display:flex;gap:12px;align-items:center;margin-top:18px;}
-  button{background:#0b61ff;color:white;border:0;padding:12px 16px;border-radius:10px;font-weight:700;cursor:pointer;}
-  .secondary{background:#f0f4ff;color:#0b61ff;border:1px solid #dbe9ff;}
-  .note{font-size:12px;color:#777;margin-top:12px;}
-  .small{font-size:12px;color:#666;margin-top:6px;}
-  canvas{margin-top:20px;}
-  @media(max-width:520px){.wrap{margin:12px;padding:14px}}
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f5f7fb;margin:0;color:#111;padding:20px;}
+  .wrap{max-width:800px;margin:30px auto;padding:25px;background:#fff;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.08);}
+  h1{text-align:center;color:#0b61ff;font-size:26px;margin-bottom:10px;}
+  p.lead{text-align:center;color:#555;margin-bottom:25px;}
+  label{display:block;margin-top:12px;font-weight:600;font-size:14px;}
+  input[type=text],input[type=datetime-local],input[type=date],textarea,select{
+    width:100%;padding:10px;margin-top:6px;border:1px solid #dfe6ef;border-radius:8px;font-size:14px;
+  }
+  textarea{min-height:100px;resize:vertical;}
+  .actions{margin-top:20px;text-align:center;}
+  button{background:#0b61ff;color:#fff;border:none;padding:12px 20px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;}
+  button:hover{background:#084dd4;}
+  .note{font-size:12px;color:#666;text-align:center;margin-top:15px;}
+  #qrcode{text-align:center;margin-top:40px;}
+  canvas{margin-top:10px;}
+  @media(max-width:520px){.wrap{padding:15px;margin:15px;}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 </head>
 <body>
+
 <main class="wrap" id="mainWrap">
-  <h1>Emergency Report</h1>
-  <p class="lead">Quickly report an incident. Submissions are sent to <strong>felixthuo22@gmail.com</strong>.</p>
+  <h1>Safety Near Miss Report</h1>
+  <p class="lead">Please complete this form to report a near miss incident. Submissions go directly to <strong>felixthuo22@gmail.com</strong>.</p>
 
-  <form id="reportForm" method="POST" enctype="multipart/form-data" accept-charset="utf-8">
-    <input type="hidden" name="_subject" value="New Emergency Report">
-    <input type="hidden" name="_next" value="">
+  <form id="reportForm" enctype="multipart/form-data" method="POST" accept-charset="utf-8">
+    <input type="hidden" name="_subject" value="New Safety Near Miss Report">
     <input type="hidden" name="_captcha" value="false">
+    <input type="hidden" name="_next" value="">
+    <input type="hidden" id="ts" name="Timestamp" value="">
 
-    <label for="name">Name (optional)</label>
-    <input id="name" name="Name" type="text" placeholder="Reporter name">
+    <label for="date">Date of Near Miss</label>
+    <input id="date" name="Date" type="date" required>
 
-    <label for="location">Location</label>
-    <input id="location" name="Location" type="text" placeholder="Where is the incident? (address, building, etc)" required>
+    <label for="time">Time of Near Miss</label>
+    <input id="time" name="Time" type="time" required>
 
-    <label for="type">Type of emergency</label>
-    <select id="type" name="Type" required>
+    <label for="location">Location of Near Miss (if customer site, provide address)</label>
+    <input id="location" name="Location" type="text" placeholder="e.g., Warehouse 2, Loading Bay" required>
+
+    <label for="category">Category of Near Miss</label>
+    <select id="category" name="Category" required>
       <option value="">— Select —</option>
-      <option>Fire</option>
-      <option>Medical</option>
-      <option>Security</option>
-      <option>Spill / Hazard</option>
+      <option>Fall from height</option>
+      <option>Trip / fall on same level</option>
+      <option>Fall from equipment</option>
+      <option>Hazardous Manual Handling</option>
+      <option>Electric Shock</option>
+      <option>Caught between / underneath</option>
+      <option>Hazardous Substance</option>
+      <option>Falling object</option>
       <option>Other</option>
     </select>
 
-    <label for="description">Description</label>
-    <textarea id="description" name="Description" placeholder="Describe what happened" required></textarea>
+    <label for="description">Describe how the Near Miss occurred</label>
+    <textarea id="description" name="Description" required></textarea>
 
-    <label for="photo">Attach photo (optional)</label>
+    <label for="cause">Describe what led up to and caused the Near Miss</label>
+    <textarea id="cause" name="Cause" required></textarea>
+
+    <label for="photo">Upload Photos (optional)</label>
     <input id="photo" name="Photo" type="file" accept="image/*">
 
-    <input type="hidden" id="ts" name="Timestamp" value="">
+    <label for="suggestions">Safety suggestions to prevent recurrence</label>
+    <textarea id="suggestions" name="SafetySuggestions" required></textarea>
+
+    <label for="name">Name (optional)</label>
+    <input id="name" name="Name" type="text" placeholder="Your name (optional)">
 
     <div class="actions">
       <button type="submit">Submit Report</button>
-      <button type="button" class="secondary" id="geoBtn">Add my location</button>
     </div>
 
-    <p class="note">After first-time activation FormSubmit will send a verification to the recipient inbox — please confirm the link in that email to start receiving reports.</p>
-    <div id="status" class="small" aria-live="polite"></div>
+    <p class="note">After your first submission, FormSubmit will send a verification email to activate your inbox. Confirm it once to start receiving reports automatically.</p>
+    <div id="status" class="note" aria-live="polite"></div>
   </form>
 
-  <h2 style="margin-top:40px;">QR Code for Quick Access</h2>
-  <p class="lead">Scan this QR code to open the form on any device:</p>
-  <canvas id="qrcode"></canvas>
+  <div id="qrcode">
+    <h3>Scan to Open this Form</h3>
+    <canvas></canvas>
+  </div>
 </main>
 
 <script>
 (function(){
   const form = document.getElementById('reportForm');
-  const tsInput = document.getElementById('ts');
+  const ts = document.getElementById('ts');
   const status = document.getElementById('status');
-  const geoBtn = document.getElementById('geoBtn');
+  const actionURL = "https://formsubmit.co/felixthuo22@gmail.com";
 
-  // Current timestamp
-  function setTimestamp(){ tsInput.value = new Date().toISOString(); }
+  function setTimestamp(){
+    ts.value = new Date().toISOString();
+  }
+
   setTimestamp();
 
-  // Add geolocation
-  geoBtn.addEventListener('click', () => {
-    if (!navigator.geolocation) {
-      status.textContent = 'Geolocation not supported by this device.';
-      return;
-    }
-    geoBtn.disabled = true;
-    geoBtn.textContent = 'Locating…';
-    navigator.geolocation.getCurrentPosition((pos) => {
-      const lat = pos.coords.latitude.toFixed(6), lon = pos.coords.longitude.toFixed(6);
-      const locField = document.getElementById('location');
-      locField.value = (locField.value ? locField.value + ' — ' : '') + `Lat:${lat},Lon:${lon}`;
-      status.textContent = 'Location added.';
-      geoBtn.disabled = false;
-      geoBtn.textContent = 'Add my location';
-    }, (err) => {
-      status.textContent = 'Location denied or unavailable.';
-      geoBtn.disabled = false;
-      geoBtn.textContent = 'Add my location';
-    }, {timeout:10000});
-  });
-
-  // AJAX form submit
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', e => {
     e.preventDefault();
     setTimestamp();
-    status.textContent = 'Submitting…';
-    const formData = new FormData(form);
-    const actionURL = 'https://formsubmit.co/felixthuo22@gmail.com';
+    status.textContent = "Submitting...";
+    const data = new FormData(form);
 
-    fetch(actionURL, {method:'POST', body:formData})
-      .then(response => {
-        if(response.ok){
+    fetch(actionURL, {method:'POST', body:data})
+      .then(res => {
+        if(res.ok){
           document.getElementById('mainWrap').innerHTML = `
-            <h1>Thanks — report submitted</h1>
-            <p class="lead">Your report was received. If this is an emergency, call local services immediately.</p>
+            <h1>Report Submitted</h1>
+            <p class='lead'>Thank you! Your Safety Near Miss Report has been received.</p>
           `;
         } else {
-          status.textContent = 'Error submitting report. Please try again.';
+          status.textContent = "Error submitting report. Please try again.";
         }
       })
       .catch(err => {
-        status.textContent = 'Error submitting report. Please try again.';
         console.error(err);
+        status.textContent = "Error submitting report. Please check your connection.";
       });
   });
 
-  // Generate QR code linking to this same page
-  const formURL = window.location.href; // current page
-  QRCode.toCanvas(document.getElementById('qrcode'), formURL, { width: 250 }, function(error) {
-    if (error) console.error(error);
-    else console.log('QR code generated!');
+  // QR code generator
+  const qrCanvas = document.querySelector('#qrcode canvas');
+  const formURL = window.location.href;
+  QRCode.toCanvas(qrCanvas, formURL, {width: 200}, err => {
+    if (err) console.error(err);
   });
-
 })();
 </script>
 </body>
