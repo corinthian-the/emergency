@@ -22,8 +22,9 @@
   .actions{margin-top:18px;text-align:center}
   button{background:var(--blue);color:#fff;border:0;padding:12px 18px;border-radius:10px;font-weight:700;cursor:pointer}
   .note{font-size:13px;color:var(--muted);margin-top:12px}
-  #qrcode{ text-align:center;margin-top:26px }
-  canvas{display:block;margin:12px auto}
+  #qrcode-wrapper{ text-align:center;margin-top:26px; }
+  #qrcode-wrapper canvas{display:block;margin:12px auto}
+  .qr-page{display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh;background:#f7f7f7}
   @media(max-width:720px){.grid{grid-template-columns:1fr}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
@@ -36,20 +37,17 @@
     <p class="lead">A near-miss is an unplanned event that did not result in injury, illness, or damage, but had the potential to do so. Use this form to report near misses so we can prevent future incidents. Submissions will be emailed to <strong>felixthuo22@gmail.com</strong> and saved to the designated Google Sheet.</p>
   </header>
 
-  <!-- FORM: posts to FormSubmit (email) and also sends JSON to Google Script -->
+  <!-- FORM -->
   <form id="nmForm"
         action="https://formsubmit.co/felixthuo22@gmail.com"
         method="POST"
         enctype="multipart/form-data"
         accept-charset="utf-8">
 
-    <!-- FormSubmit hidden settings -->
     <input type="hidden" name="_subject" value="New Near Miss Report">
     <input type="hidden" name="_captcha" value="false">
     <input type="hidden" name="_template" value="table">
     <input type="hidden" name="_next" value="">
-
-    <!-- Timestamp (server will also stamp in sheet) -->
     <input type="hidden" id="ts" name="Timestamp" value="">
 
     <div class="grid">
@@ -63,10 +61,10 @@
       </div>
     </div>
 
-    <label for="location">Location of Near Miss (If customer site, provide address)</label>
+    <label for="location">Location of Near Miss</label>
     <input id="location" name="Location" type="text" placeholder="e.g., Site name, Warehouse 2, Loading Bay" required>
 
-    <label>Category (select the category the near-miss most relates to)</label>
+    <label>Category</label>
     <div class="checkbox-grid" role="group" aria-label="Near miss categories">
       <label><input type="checkbox" name="Category_Checks" value="Fall from height"> Fall from height</label>
       <label><input type="checkbox" name="Category_Checks" value="Trip / fall on same level"> Trip / fall on same level</label>
@@ -88,10 +86,10 @@
     <label for="leadup">Describe what lead up to and caused the Near Miss</label>
     <textarea id="leadup" name="LeadUpCause" required placeholder="Describe sequence, contributing factors"></textarea>
 
-    <label for="photos">Photo/s that can help explain what, where, why, or possible injury (optional)</label>
+    <label for="photos">Photo/s (optional)</label>
     <input id="photos" name="Photos" type="file" accept="image/*" multiple>
 
-    <label for="safety">Safety suggestions to ensure no repeat of Near Miss occurs</label>
+    <label for="safety">Safety suggestions</label>
     <textarea id="safety" name="SafetySuggestions" required placeholder="Suggestions for prevention"></textarea>
 
     <div class="grid">
@@ -100,7 +98,7 @@
         <input id="signname" name="ReporterName" type="text" placeholder="Name (optional)">
       </div>
       <div>
-        <label for="signature">Signature (type your name to sign - optional)</label>
+        <label for="signature">Signature (optional)</label>
         <input id="signature" name="Signature" type="text" placeholder="Signature (typed)">
       </div>
     </div>
@@ -114,7 +112,8 @@
     <div id="status" class="note" aria-live="polite"></div>
   </form>
 
-  <div id="qrcode">
+  <!-- QR Section -->
+  <div id="qrcode-wrapper">
     <h3 style="text-align:center;margin-top:22px">Scan to Open this Form</h3>
     <canvas></canvas>
     <div style="text-align:center;color:var(--muted);font-size:13px;margin-top:6px">Or copy the page URL</div>
@@ -122,9 +121,7 @@
 </main>
 
 <script>
-/* ---------- CONFIG: Google Script URL (you already provided this) ---------- */
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyYSGFWKknb2p77-PIczW2kv3oQBvZn12U_i9JGyTyt0DbTu2FnFCacmK0IXLbLBhE/exec";
-/* ------------------------------------------------------------------------- */
 
 (function(){
   const form = document.getElementById('nmForm');
@@ -132,59 +129,54 @@ const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyYSGFWKknb2p
   const submitBtn = document.getElementById('submitBtn');
   const ts = document.getElementById('ts');
 
-  function setTimestamp(){ ts.value = new Date().toISOString(); }
-  setTimestamp();
+  // Set timestamp
+  ts.value = new Date().toISOString();
 
-  // QR code
-  const qrCanvas = document.querySelector('#qrcode canvas');
-  QRCode.toCanvas(qrCanvas, window.location.href, {width:220}, err => { if(err) console.error(err); });
+  // Generate QR code (canvas)
+  const qrCanvas = document.querySelector('#qrcode-wrapper canvas');
+  QRCode.toCanvas(qrCanvas, window.location.href, {width:250}, err => { if(err) console.error(err); });
 
-  // Helper: gather checked categories into comma list
+  // Helper: collect multiple categories
   function collectCategories(formData){
-    // formData may contain multiple Category_Checks; join them
     const cats = [];
-    for (const pair of formData.entries()){
-      if (pair[0] === 'Category_Checks') cats.push(pair[1]);
+    for(const pair of formData.entries()){
+      if(pair[0]==='Category_Checks') cats.push(pair[1]);
     }
     return cats.join('; ');
   }
 
+  // Form submit
   form.addEventListener('submit', function(e){
     e.preventDefault();
     submitBtn.disabled = true;
     status.textContent = "Saving to spreadsheet and sending email...";
 
-    // form data (includes files)
     const fd = new FormData(form);
 
-    // Build object for Google (text fields only; files omitted)
     const payload = {
       Timestamp: new Date().toISOString(),
-      Date: fd.get('Date') || '',
-      Time: fd.get('Time') || '',
-      Location: fd.get('Location') || '',
-      Category: collectCategories(fd) || fd.get('Category_Other') || '',
-      Describe: fd.get('Describe') || '',
-      LeadUpCause: fd.get('LeadUpCause') || '',
-      SafetySuggestions: fd.get('SafetySuggestions') || '',
-      ReporterName: fd.get('ReporterName') || '',
-      Signature: fd.get('Signature') || ''
+      Date: fd.get('Date')||'',
+      Time: fd.get('Time')||'',
+      Location: fd.get('Location')||'',
+      Category: collectCategories(fd)||fd.get('Category_Other')||'',
+      Describe: fd.get('Describe')||'',
+      LeadUpCause: fd.get('LeadUpCause')||'',
+      SafetySuggestions: fd.get('SafetySuggestions')||'',
+      ReporterName: fd.get('ReporterName')||'',
+      Signature: fd.get('Signature')||''
     };
 
-    // Send to Google Script (JSON)
-    fetch(GOOGLE_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+    // Send JSON to Google Script
+    fetch(GOOGLE_SCRIPT_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
     }).then(resp => resp.json ? resp.json().catch(()=>{}) : {})
-      .catch(err => console.error('Google script error:', err))
-      .finally(() => {
-        // Finally, submit the full form to FormSubmit (this will include files)
-        // Use a small delay to let the user agent finish any async work
-        setTimeout(()=> form.submit(), 250);
-      });
+      .catch(err => console.error('Google script error:',err))
+      .finally(()=> setTimeout(()=>form.submit(),250));
   });
 })();
 </script>
 </body>
 </html>
+
