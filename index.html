@@ -1,142 +1,188 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Safety Near Miss Report</title>
+<title>Near Miss Reporting Form — Safety Near Miss Report</title>
 <style>
-  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f5f7fb;margin:0;color:#111;padding:20px;}
-  .wrap{max-width:900px;margin:30px auto;padding:25px;background:#fff;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.08);}
-  h1{text-align:center;color:#0b61ff;font-size:26px;margin-bottom:6px;}
-  p.lead{text-align:center;color:#555;margin-bottom:20px;}
-  label{display:block;margin-top:12px;font-weight:600;font-size:14px;}
+  :root{--blue:#0b61ff;--muted:#666}
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f5f7fb;margin:0;color:#111;padding:18px}
+  .wrap{max-width:900px;margin:26px auto;padding:22px;background:#fff;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.06)}
+  header small{display:block;color:var(--muted);margin-bottom:8px}
+  h1{color:var(--blue);margin:0 0 6px;font-size:22px}
+  p.lead{margin:0 0 18px;color:#444}
+  label{display:block;margin-top:12px;font-weight:600;font-size:14px}
   input[type=text],input[type=date],input[type=time],textarea,select{
     width:100%;padding:10px;margin-top:6px;border:1px solid #dfe6ef;border-radius:8px;font-size:14px;
   }
-  textarea{min-height:110px;resize:vertical;}
-  .actions{margin-top:18px;text-align:center;}
-  button{background:#0b61ff;color:#fff;border:none;padding:12px 20px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;}
-  button:hover{background:#084dd4;}
-  .note{font-size:13px;color:#666;text-align:center;margin-top:12px;}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  textarea{min-height:90px;resize:vertical}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .checkbox-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+  .small{font-size:13px;color:var(--muted)}
+  .actions{margin-top:18px;text-align:center}
+  button{background:var(--blue);color:#fff;border:0;padding:12px 18px;border-radius:10px;font-weight:700;cursor:pointer}
+  .note{font-size:13px;color:var(--muted);margin-top:12px}
+  #qrcode{ text-align:center;margin-top:26px }
+  canvas{display:block;margin:12px auto}
   @media(max-width:720px){.grid{grid-template-columns:1fr}}
-  #qrcode{ text-align:center; margin-top:28px; }
-  canvas{ display:block; margin: 12px auto; }
-  .status{margin-top:10px;text-align:center;font-size:14px;color:#333;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 </head>
 <body>
 <main class="wrap" id="mainWrap">
-  <h1>Safety Near Miss Report</h1>
-  <p class="lead">Please complete this form. Submissions will be emailed to <strong>felixthuo22@gmail.com</strong> and saved to a Google Sheet.</p>
+  <header>
+    <small>Form Number: DOC.F.3746 · Doc Owner: Teresia Kigera · Revision: 0 · Effective Date: 2024-07-16</small>
+    <h1>Safety Near Miss Report</h1>
+    <p class="lead">A near-miss is an unplanned event that did not result in injury, illness, or damage, but had the potential to do so. Use this form to report near misses so we can prevent future incidents. Submissions will be emailed to <strong>felixthuo22@gmail.com</strong> and saved to the designated Google Sheet.</p>
+  </header>
 
-  <!-- FormSubmit + Google Sheets -->
-  <form id="reportForm"
+  <!-- FORM: posts to FormSubmit (email) and also sends JSON to Google Script -->
+  <form id="nmForm"
         action="https://formsubmit.co/felixthuo22@gmail.com"
         method="POST"
         enctype="multipart/form-data"
         accept-charset="utf-8">
 
-    <!-- FormSubmit settings -->
-    <input type="hidden" name="_subject" value="New Safety Near Miss Report">
+    <!-- FormSubmit hidden settings -->
+    <input type="hidden" name="_subject" value="New Near Miss Report">
     <input type="hidden" name="_captcha" value="false">
     <input type="hidden" name="_template" value="table">
     <input type="hidden" name="_next" value="">
 
+    <!-- Timestamp (server will also stamp in sheet) -->
+    <input type="hidden" id="ts" name="Timestamp" value="">
+
     <div class="grid">
       <div>
-        <label>Date of Near Miss</label>
-        <input name="Date" type="date" required>
+        <label for="date">Date of Near Miss</label>
+        <input id="date" name="Date" type="date" required>
       </div>
-
       <div>
-        <label>Time of Near Miss</label>
-        <input name="Time" type="time" required>
+        <label for="time">Time of Near Miss</label>
+        <input id="time" name="Time" type="time" required>
       </div>
     </div>
 
-    <label>Location (give exact site or address)</label>
-    <input name="Location" type="text" required>
+    <label for="location">Location of Near Miss (If customer site, provide address)</label>
+    <input id="location" name="Location" type="text" placeholder="e.g., Site name, Warehouse 2, Loading Bay" required>
 
-    <label>Category</label>
-    <select name="Category" required>
-      <option value="">— Select —</option>
-      <option>Fall from height</option>
-      <option>Trip / fall on same level</option>
-      <option>Fall from equipment</option>
-      <option>Hazardous Manual Handling</option>
-      <option>Electric Shock</option>
-      <option>Caught between / underneath</option>
-      <option>Hazardous Substance</option>
-      <option>Falling object</option>
-      <option>Other</option>
-    </select>
+    <label>Category (select the category the near-miss most relates to)</label>
+    <div class="checkbox-grid" role="group" aria-label="Near miss categories">
+      <label><input type="checkbox" name="Category_Checks" value="Fall from height"> Fall from height</label>
+      <label><input type="checkbox" name="Category_Checks" value="Trip / fall on same level"> Trip / fall on same level</label>
+      <label><input type="checkbox" name="Category_Checks" value="Fall from equipment"> Fall from equipment</label>
+      <label><input type="checkbox" name="Category_Checks" value="Hazardous Manual Handling"> Hazardous Manual Handling</label>
+      <label><input type="checkbox" name="Category_Checks" value="Electric Shock"> Electric Shock</label>
+      <label><input type="checkbox" name="Category_Checks" value="Caught between/underneath"> Caught between/underneath</label>
+      <label><input type="checkbox" name="Category_Checks" value="Hazardous Substance"> Hazardous Substance</label>
+      <label><input type="checkbox" name="Category_Checks" value="Falling object"> Falling object</label>
+      <label><input type="checkbox" name="Category_Checks" value="Other"> Other (tick and describe below)</label>
+    </div>
 
-    <label>Describe how the Near Miss occurred</label>
-    <textarea name="Description" required></textarea>
+    <label for="othercat">If Other, please describe</label>
+    <input id="othercat" name="Category_Other" type="text" placeholder="Describe other category (optional)">
 
-    <label>Describe what caused the Near Miss</label>
-    <textarea name="Cause" required></textarea>
+    <label for="describe">Describe how the Near Miss occurred</label>
+    <textarea id="describe" name="Describe" required placeholder="Describe what happened (who, what, where, how)"></textarea>
 
-    <label>Upload Photos (optional)</label>
-    <input name="Photos" type="file" accept="image/*">
+    <label for="leadup">Describe what lead up to and caused the Near Miss</label>
+    <textarea id="leadup" name="LeadUpCause" required placeholder="Describe sequence, contributing factors"></textarea>
 
-    <label>Safety suggestions to prevent recurrence</label>
-    <textarea name="SafetySuggestions" required></textarea>
+    <label for="photos">Photo/s that can help explain what, where, why, or possible injury (optional)</label>
+    <input id="photos" name="Photos" type="file" accept="image/*" multiple>
 
-    <label>Name (optional)</label>
-    <input name="ReporterName" type="text" placeholder="Your name">
+    <label for="safety">Safety suggestions to ensure no repeat of Near Miss occurs</label>
+    <textarea id="safety" name="SafetySuggestions" required placeholder="Suggestions for prevention"></textarea>
+
+    <div class="grid">
+      <div>
+        <label for="signname">Name (optional)</label>
+        <input id="signname" name="ReporterName" type="text" placeholder="Name (optional)">
+      </div>
+      <div>
+        <label for="signature">Signature (type your name to sign - optional)</label>
+        <input id="signature" name="Signature" type="text" placeholder="Signature (typed)">
+      </div>
+    </div>
+
+    <p class="small">(Copies of the completed Near Miss Report Form are to be sent to your supervisor and the Health & Safety Co-Ordinator.)</p>
 
     <div class="actions">
-      <button type="submit" id="submitBtn">Submit Report</button>
+      <button type="submit" id="submitBtn">Submit Near Miss Report</button>
     </div>
 
-    <div id="status" class="status"></div>
-
-    <p class="note">After your first report, check Gmail and verify FormSubmit to begin receiving emails.</p>
+    <div id="status" class="note" aria-live="polite"></div>
   </form>
 
   <div id="qrcode">
-    <h3>Scan to Open this Form</h3>
+    <h3 style="text-align:center;margin-top:22px">Scan to Open this Form</h3>
     <canvas></canvas>
+    <div style="text-align:center;color:var(--muted);font-size:13px;margin-top:6px">Or copy the page URL</div>
   </div>
 </main>
 
 <script>
-// Your Google Apps Script URL — already inserted
+/* ---------- CONFIG: Google Script URL (you already provided this) ---------- */
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyYSGFWKknb2p77-PIczW2kv3oQBvZn12U_i9JGyTyt0DbTu2FnFCacmK0IXLbLBhE/exec";
+/* ------------------------------------------------------------------------- */
 
 (function(){
-  const form = document.getElementById('reportForm');
+  const form = document.getElementById('nmForm');
   const status = document.getElementById('status');
   const submitBtn = document.getElementById('submitBtn');
+  const ts = document.getElementById('ts');
 
-  // QR Code
+  function setTimestamp(){ ts.value = new Date().toISOString(); }
+  setTimestamp();
+
+  // QR code
   const qrCanvas = document.querySelector('#qrcode canvas');
-  QRCode.toCanvas(qrCanvas, window.location.href, {width: 220});
+  QRCode.toCanvas(qrCanvas, window.location.href, {width:220}, err => { if(err) console.error(err); });
 
-  // Submit handler
-  form.addEventListener('submit', function (e) {
-    e.preventDefault(); // stop default POST
+  // Helper: gather checked categories into comma list
+  function collectCategories(formData){
+    // formData may contain multiple Category_Checks; join them
+    const cats = [];
+    for (const pair of formData.entries()){
+      if (pair[0] === 'Category_Checks') cats.push(pair[1]);
+    }
+    return cats.join('; ');
+  }
 
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
     submitBtn.disabled = true;
-    status.textContent = "Saving to Google Sheet + sending email...";
+    status.textContent = "Saving to spreadsheet and sending email...";
 
-    // Convert form to object
+    // form data (includes files)
     const fd = new FormData(form);
-    const obj = {};
-    fd.forEach((v,k)=>{ obj[k]=v; });
 
-    // Send to Google Sheets (JSON)
+    // Build object for Google (text fields only; files omitted)
+    const payload = {
+      Timestamp: new Date().toISOString(),
+      Date: fd.get('Date') || '',
+      Time: fd.get('Time') || '',
+      Location: fd.get('Location') || '',
+      Category: collectCategories(fd) || fd.get('Category_Other') || '',
+      Describe: fd.get('Describe') || '',
+      LeadUpCause: fd.get('LeadUpCause') || '',
+      SafetySuggestions: fd.get('SafetySuggestions') || '',
+      ReporterName: fd.get('ReporterName') || '',
+      Signature: fd.get('Signature') || ''
+    };
+
+    // Send to Google Script (JSON)
     fetch(GOOGLE_SCRIPT_URL, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(obj)
-    }).finally(()=>{
-      // After saving to Google, submit form to FormSubmit for email
-      form.submit();
-    });
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(resp => resp.json ? resp.json().catch(()=>{}) : {})
+      .catch(err => console.error('Google script error:', err))
+      .finally(() => {
+        // Finally, submit the full form to FormSubmit (this will include files)
+        // Use a small delay to let the user agent finish any async work
+        setTimeout(()=> form.submit(), 250);
+      });
   });
 })();
 </script>
