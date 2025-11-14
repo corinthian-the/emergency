@@ -1,52 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Safety Near Miss Report</title>
 <style>
   body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f5f7fb;margin:0;color:#111;padding:20px;}
-  .wrap{max-width:800px;margin:30px auto;padding:25px;background:#fff;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.08);}
-  h1{text-align:center;color:#0b61ff;font-size:26px;margin-bottom:10px;}
-  p.lead{text-align:center;color:#555;margin-bottom:25px;}
+  .wrap{max-width:900px;margin:30px auto;padding:25px;background:#fff;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.08);}
+  h1{text-align:center;color:#0b61ff;font-size:26px;margin-bottom:6px;}
+  p.lead{text-align:center;color:#555;margin-bottom:20px;}
   label{display:block;margin-top:12px;font-weight:600;font-size:14px;}
-  input[type=text],input[type=datetime-local],input[type=date],textarea,select{
+  input[type=text],input[type=date],input[type=time],textarea,select{
     width:100%;padding:10px;margin-top:6px;border:1px solid #dfe6ef;border-radius:8px;font-size:14px;
   }
-  textarea{min-height:100px;resize:vertical;}
-  .actions{margin-top:20px;text-align:center;}
+  textarea{min-height:110px;resize:vertical;}
+  .actions{margin-top:18px;text-align:center;}
   button{background:#0b61ff;color:#fff;border:none;padding:12px 20px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;}
   button:hover{background:#084dd4;}
-  .note{font-size:12px;color:#666;text-align:center;margin-top:15px;}
-  #qrcode{text-align:center;margin-top:40px;}
-  canvas{margin-top:10px;}
-  @media(max-width:520px){.wrap{padding:15px;margin:15px;}}
+  .note{font-size:13px;color:#666;text-align:center;margin-top:12px;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media(max-width:720px){.grid{grid-template-columns:1fr}}
+  #qrcode{ text-align:center; margin-top:28px; }
+  canvas{ display:block; margin: 12px auto; }
+  .status{margin-top:10px;text-align:center;font-size:14px;color:#333;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 </head>
 <body>
-
 <main class="wrap" id="mainWrap">
   <h1>Safety Near Miss Report</h1>
-  <p class="lead">Please complete this form to report a near miss incident. Submissions go directly to <strong>felixthuo22@gmail.com</strong>.</p>
+  <p class="lead">Please complete this form. Submissions will be emailed to <strong>felixthuo22@gmail.com</strong> and saved to a Google Sheet.</p>
 
-  <form id="reportForm" enctype="multipart/form-data" method="POST" accept-charset="utf-8">
+  <!-- FormSubmit + Google Sheets -->
+  <form id="reportForm"
+        action="https://formsubmit.co/felixthuo22@gmail.com"
+        method="POST"
+        enctype="multipart/form-data"
+        accept-charset="utf-8">
+
+    <!-- FormSubmit settings -->
     <input type="hidden" name="_subject" value="New Safety Near Miss Report">
     <input type="hidden" name="_captcha" value="false">
+    <input type="hidden" name="_template" value="table">
     <input type="hidden" name="_next" value="">
-    <input type="hidden" id="ts" name="Timestamp" value="">
 
-    <label for="date">Date of Near Miss</label>
-    <input id="date" name="Date" type="date" required>
+    <div class="grid">
+      <div>
+        <label>Date of Near Miss</label>
+        <input name="Date" type="date" required>
+      </div>
 
-    <label for="time">Time of Near Miss</label>
-    <input id="time" name="Time" type="time" required>
+      <div>
+        <label>Time of Near Miss</label>
+        <input name="Time" type="time" required>
+      </div>
+    </div>
 
-    <label for="location">Location of Near Miss (if customer site, provide address)</label>
-    <input id="location" name="Location" type="text" placeholder="e.g., Warehouse 2, Loading Bay" required>
+    <label>Location (give exact site or address)</label>
+    <input name="Location" type="text" required>
 
-    <label for="category">Category of Near Miss</label>
-    <select id="category" name="Category" required>
+    <label>Category</label>
+    <select name="Category" required>
       <option value="">— Select —</option>
       <option>Fall from height</option>
       <option>Trip / fall on same level</option>
@@ -59,27 +73,28 @@
       <option>Other</option>
     </select>
 
-    <label for="description">Describe how the Near Miss occurred</label>
-    <textarea id="description" name="Description" required></textarea>
+    <label>Describe how the Near Miss occurred</label>
+    <textarea name="Description" required></textarea>
 
-    <label for="cause">Describe what led up to and caused the Near Miss</label>
-    <textarea id="cause" name="Cause" required></textarea>
+    <label>Describe what caused the Near Miss</label>
+    <textarea name="Cause" required></textarea>
 
-    <label for="photo">Upload Photos (optional)</label>
-    <input id="photo" name="Photo" type="file" accept="image/*">
+    <label>Upload Photos (optional)</label>
+    <input name="Photos" type="file" accept="image/*">
 
-    <label for="suggestions">Safety suggestions to prevent recurrence</label>
-    <textarea id="suggestions" name="SafetySuggestions" required></textarea>
+    <label>Safety suggestions to prevent recurrence</label>
+    <textarea name="SafetySuggestions" required></textarea>
 
-    <label for="name">Name (optional)</label>
-    <input id="name" name="Name" type="text" placeholder="Your name (optional)">
+    <label>Name (optional)</label>
+    <input name="ReporterName" type="text" placeholder="Your name">
 
     <div class="actions">
-      <button type="submit">Submit Report</button>
+      <button type="submit" id="submitBtn">Submit Report</button>
     </div>
 
-    <p class="note">After your first submission, FormSubmit will send a verification email to activate your inbox. Confirm it once to start receiving reports automatically.</p>
-    <div id="status" class="note" aria-live="polite"></div>
+    <div id="status" class="status"></div>
+
+    <p class="note">After your first report, check Gmail and verify FormSubmit to begin receiving emails.</p>
   </form>
 
   <div id="qrcode">
@@ -89,46 +104,39 @@
 </main>
 
 <script>
+// Your Google Apps Script URL — already inserted
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyYSGFWKknb2p77-PIczW2kv3oQBvZn12U_i9JGyTyt0DbTu2FnFCacmK0IXLbLBhE/exec";
+
 (function(){
   const form = document.getElementById('reportForm');
-  const ts = document.getElementById('ts');
   const status = document.getElementById('status');
-  const actionURL = "https://formsubmit.co/felixthuo22@gmail.com";
+  const submitBtn = document.getElementById('submitBtn');
 
-  function setTimestamp(){
-    ts.value = new Date().toISOString();
-  }
-
-  setTimestamp();
-
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-    setTimestamp();
-    status.textContent = "Submitting...";
-    const data = new FormData(form);
-
-    fetch(actionURL, {method:'POST', body:data})
-      .then(res => {
-        if(res.ok){
-          document.getElementById('mainWrap').innerHTML = `
-            <h1>Report Submitted</h1>
-            <p class='lead'>Thank you! Your Safety Near Miss Report has been received.</p>
-          `;
-        } else {
-          status.textContent = "Error submitting report. Please try again.";
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        status.textContent = "Error submitting report. Please check your connection.";
-      });
-  });
-
-  // QR code generator
+  // QR Code
   const qrCanvas = document.querySelector('#qrcode canvas');
-  const formURL = window.location.href;
-  QRCode.toCanvas(qrCanvas, formURL, {width: 200}, err => {
-    if (err) console.error(err);
+  QRCode.toCanvas(qrCanvas, window.location.href, {width: 220});
+
+  // Submit handler
+  form.addEventListener('submit', function (e) {
+    e.preventDefault(); // stop default POST
+
+    submitBtn.disabled = true;
+    status.textContent = "Saving to Google Sheet + sending email...";
+
+    // Convert form to object
+    const fd = new FormData(form);
+    const obj = {};
+    fd.forEach((v,k)=>{ obj[k]=v; });
+
+    // Send to Google Sheets (JSON)
+    fetch(GOOGLE_SCRIPT_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(obj)
+    }).finally(()=>{
+      // After saving to Google, submit form to FormSubmit for email
+      form.submit();
+    });
   });
 })();
 </script>
